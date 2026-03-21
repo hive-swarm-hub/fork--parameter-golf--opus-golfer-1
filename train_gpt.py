@@ -386,11 +386,11 @@ def mixed_quantize_int6(state_dict: dict[str, Tensor], int6_cats: set[str]):
             meta[name] = "passthrough_fp16"
             continue
         if cat in int6_cats and t.ndim >= 1:
-            clip = 31  # int6 for all (MLP, attn, bigram)
+            clip = 15 if cat == "mlp" else 31  # int5 for MLP, int6 for attn/bigram
             q, s = quantize_intN_per_row(t, clip_range=clip)
             result[name + ".q"] = q
             result[name + ".scale"] = s
-            meta[name] = {"type": "int6"}
+            meta[name] = {"type": f"int{5 if cat == 'mlp' else 6}"}
         else:
             q, s = quantize_float_tensor(t)
             result[name + ".q"] = q
