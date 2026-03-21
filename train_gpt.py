@@ -56,7 +56,7 @@ class Hyperparameters:
     train_log_every = int(os.environ.get("TRAIN_LOG_EVERY", 100))
 
     iterations = int(os.environ.get("ITERATIONS", 20000))
-    warmdown_iters = int(os.environ.get("WARMDOWN_ITERS", 3000))
+    warmdown_iters = int(os.environ.get("WARMDOWN_ITERS", 2800))
     warmup_steps = int(os.environ.get("WARMUP_STEPS", 20))
     train_batch_tokens = int(os.environ.get("TRAIN_BATCH_TOKENS", 524_288))
     train_seq_len = int(os.environ.get("TRAIN_SEQ_LEN", 2048))
@@ -70,7 +70,7 @@ class Hyperparameters:
     num_heads = int(os.environ.get("NUM_HEADS", 8))
     mlp_mult = float(os.environ.get("MLP_MULT", 3.0))
     tie_embeddings = bool(int(os.environ.get("TIE_EMBEDDINGS", "1")))
-    rope_base = float(os.environ.get("ROPE_BASE", 10000.0))
+    rope_base = float(os.environ.get("ROPE_BASE", 50000.0))
     logit_softcap = float(os.environ.get("LOGIT_SOFTCAP", 30.0))
 
     embed_lr = float(os.environ.get("EMBED_LR", 0.6))
@@ -92,16 +92,16 @@ class Hyperparameters:
     eval_stride = int(os.environ.get("EVAL_STRIDE", 32))
     eval_batch_seqs = int(os.environ.get("EVAL_BATCH_SEQS", 32))
 
-    bigram_vocab_size = int(os.environ.get("BIGRAM_VOCAB_SIZE", 10240))
+    bigram_vocab_size = int(os.environ.get("BIGRAM_VOCAB_SIZE", 4096))
     bigram_dim = int(os.environ.get("BIGRAM_DIM", 128))
 
-    swa_enabled = bool(int(os.environ.get("SWA_ENABLED", "1")))
+    swa_enabled = bool(int(os.environ.get("SWA_ENABLED", "0")))
     swa_start_frac = float(os.environ.get("SWA_START_FRAC", 0.4))
     swa_every = int(os.environ.get("SWA_EVERY", 50))
 
     xsa_last_n = int(os.environ.get("XSA_LAST_N", 4))
-    ema_enabled = bool(int(os.environ.get("EMA_ENABLED", "0")))
-    ema_decay = float(os.environ.get("EMA_DECAY", 0.997))
+    ema_enabled = bool(int(os.environ.get("EMA_ENABLED", "1")))
+    ema_decay = float(os.environ.get("EMA_DECAY", 0.998))
 
     ttt_enabled = bool(int(os.environ.get("TTT_ENABLED", "0")))
     ttt_lr = float(os.environ.get("TTT_LR", 0.004))
@@ -1327,7 +1327,7 @@ def main() -> None:
     with torch.no_grad():
         for name, param in base_model.named_parameters():
             if param.ndim == 2 and param.numel() > 65536:
-                threshold = torch.quantile(param.abs().float().flatten(), 0.10)
+                threshold = torch.quantile(param.abs().float().flatten(), 0.03)
                 mask = param.abs() < threshold
                 param.masked_fill_(mask, 0.0)
 
